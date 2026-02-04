@@ -216,73 +216,102 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Price Comparison Panel */}
+      {/* Price Comparison Panel - Modern Glass UI */}
       {(comparingPrices || priceComparison) && query.trim() && (
-        <section className="px-6 pb-8">
+        <section className="px-4 pb-6">
           <div className="max-w-7xl mx-auto">
-            <div className="bg-white border border-black/[0.08] rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-lg">💰</span>
-                <h3 className="font-bold text-lg">Price Comparison - Refurbished vs New</h3>
-                {comparingPrices && <span className="text-xs text-black/40 animate-pulse">Searching Amazon, Best Buy, Walmart...</span>}
-              </div>
-              {priceComparison?.analysis && (
-                <div className="divide-y divide-gray-100">
-                  {priceComparison.analysis.map((item) => {
-                    const verdictEmoji: Record<string, string> = {
-                      "Great deal": "🔥",
-                      "Good deal": "✅",
-                      "Fair deal": "➖",
-                      "Not worth it": "❌",
-                      "Check links": "🔍",
-                    };
-                    const emoji = verdictEmoji[item.verdict] || "•";
-                    return (
-                      <div key={item.index} className="flex flex-col gap-2 py-4 hover:bg-gray-50 px-3 -mx-3 rounded-lg">
-                        <div className="flex items-start gap-2">
-                          <span className="text-lg">{emoji}</span>
-                          <span className="flex-1 font-semibold text-slate-800">{item.productName}</span>
-                        </div>
-                        <div className="flex items-center gap-3 ml-7 flex-wrap">
-                          <div className="bg-emerald-50 px-3 py-1.5 rounded-lg border-2 border-emerald-200">
-                            <span className="text-[10px] text-emerald-600 font-medium block">REFURBISHED</span>
-                            <span className="text-emerald-700 font-bold text-xl">${item.refurbPrice}</span>
-                          </div>
-                          <span className="text-slate-300 font-bold text-xl">vs</span>
-                          {item.savingsPercent && (
-                            <div className="bg-orange-50 px-3 py-1.5 rounded-lg">
-                              <span className="text-[10px] text-orange-600 font-medium block">YOU SAVE</span>
-                              <span className="text-orange-600 font-bold text-xl">{item.savingsPercent}%</span>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 shadow-2xl"
+            >
+              {/* Ambient glow */}
+              <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
+                    <span className="text-xl">💰</span>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg text-white">Price Intelligence</h3>
+                    {comparingPrices ? (
+                      <span className="text-xs text-emerald-400 animate-pulse">⚡ Scanning retailers...</span>
+                    ) : (
+                      <span className="text-xs text-slate-400">Real-time price comparison</span>
+                    )}
+                  </div>
+                </div>
+
+                {priceComparison?.analysis && (
+                  <div className="space-y-4">
+                    {priceComparison.analysis.map((item) => {
+                      const verdictColors: Record<string, string> = {
+                        "Great deal": "from-emerald-500 to-green-500",
+                        "Good deal": "from-blue-500 to-cyan-500",
+                        "Fair deal": "from-amber-500 to-yellow-500",
+                        "Not worth it": "from-red-500 to-rose-500",
+                        "Check links": "from-slate-500 to-gray-500",
+                      };
+                      const gradientClass = verdictColors[item.verdict] || "from-slate-500 to-gray-500";
+
+                      return (
+                        <div key={item.index} className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:bg-white/10 transition-all">
+                          <div className="flex items-start justify-between gap-4 mb-4">
+                            <span className="font-medium text-white/90 text-sm leading-tight flex-1">{item.productName}</span>
+                            <div className={`px-3 py-1 rounded-full bg-gradient-to-r ${gradientClass} text-white text-xs font-bold whitespace-nowrap`}>
+                              {item.verdict}
                             </div>
-                          )}
-                        </div>
-                        {/* All Retailer Prices */}
-                        <div className="ml-7 mt-2">
-                          <span className="text-xs text-slate-500 font-medium block mb-2">New prices from retailers:</span>
+                          </div>
+
+                          {/* Price comparison row */}
+                          <div className="flex items-center gap-3 mb-4 overflow-x-auto pb-2">
+                            <div className="flex-shrink-0 bg-emerald-500/20 backdrop-blur-sm rounded-xl px-4 py-3 border border-emerald-500/30">
+                              <div className="text-[10px] text-emerald-300 font-medium uppercase tracking-wider">Refurbished</div>
+                              <div className="text-2xl font-black text-emerald-400">${item.refurbPrice}</div>
+                            </div>
+
+                            <div className="flex-shrink-0 text-slate-500">
+                              <ArrowRight className="w-5 h-5" />
+                            </div>
+
+                            {item.savingsPercent && (
+                              <div className="flex-shrink-0 bg-gradient-to-br from-orange-500/20 to-amber-500/20 backdrop-blur-sm rounded-xl px-4 py-3 border border-orange-500/30">
+                                <div className="text-[10px] text-orange-300 font-medium uppercase tracking-wider">You Save</div>
+                                <div className="text-2xl font-black text-orange-400">{item.savingsPercent}%</div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Retailer prices */}
                           <div className="flex flex-wrap gap-2">
                             {item.retailerPrices && item.retailerPrices.length > 0 ? (
                               item.retailerPrices.map((rp, i) => {
                                 const retailerLower = (rp.retailer || "").toLowerCase();
                                 const isLowest = rp.price === item.lowestNewPrice;
-                                const bgColor = retailerLower.includes("amazon") ? "bg-orange-100 border-orange-300" :
-                                               retailerLower.includes("best buy") || retailerLower.includes("bestbuy") ? "bg-blue-100 border-blue-300" :
-                                               retailerLower.includes("walmart") ? "bg-blue-50 border-blue-300" :
-                                               retailerLower.includes("target") ? "bg-red-100 border-red-300" :
-                                               retailerLower.includes("newegg") ? "bg-orange-50 border-orange-300" :
-                                               "bg-gray-100 border-gray-300";
+                                const colors = retailerLower.includes("amazon") ? "from-orange-500/30 to-amber-500/30 border-orange-500/40 hover:border-orange-400" :
+                                             retailerLower.includes("best buy") || retailerLower.includes("bestbuy") ? "from-blue-500/30 to-indigo-500/30 border-blue-500/40 hover:border-blue-400" :
+                                             retailerLower.includes("walmart") ? "from-blue-600/30 to-blue-500/30 border-blue-600/40 hover:border-blue-500" :
+                                             retailerLower.includes("target") ? "from-red-500/30 to-rose-500/30 border-red-500/40 hover:border-red-400" :
+                                             "from-slate-500/30 to-gray-500/30 border-slate-500/40 hover:border-slate-400";
                                 return (
                                   <a
                                     key={i}
                                     href={rp.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className={`px-3 py-2 rounded-lg border-2 ${bgColor} ${isLowest ? "ring-2 ring-emerald-400" : ""} hover:opacity-80 transition-opacity`}
+                                    className={`group relative bg-gradient-to-br ${colors} backdrop-blur-sm rounded-xl px-4 py-2 border transition-all hover:scale-105 ${isLowest ? "ring-2 ring-emerald-400 ring-offset-2 ring-offset-slate-900" : ""}`}
                                   >
-                                    <span className="text-[10px] text-slate-500 font-medium block">{rp.retailer}</span>
-                                    <span className={`font-bold text-lg ${isLowest ? "text-emerald-600" : "text-slate-700"}`}>
+                                    <div className="text-[10px] text-slate-300 font-medium">{rp.retailer}</div>
+                                    <div className={`text-lg font-bold ${isLowest ? "text-emerald-400" : "text-white"}`}>
                                       ${rp.price}
-                                      {isLowest && <span className="text-[10px] ml-1">✓ LOWEST</span>}
-                                    </span>
+                                    </div>
+                                    {isLowest && (
+                                      <div className="absolute -top-2 -right-2 bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                                        BEST
+                                      </div>
+                                    )}
                                   </a>
                                 );
                               })
@@ -290,41 +319,35 @@ export default function Home() {
                               item.webResults?.slice(0, 5).map((r, i) => {
                                 const site = (r.site || "").replace("www.", "").split(".")[0];
                                 const siteName = site.charAt(0).toUpperCase() + site.slice(1);
-                                const bgColor = site.includes("amazon") ? "bg-orange-100 border-orange-300" :
-                                               site.includes("bestbuy") ? "bg-blue-100 border-blue-300" :
-                                               site.includes("walmart") ? "bg-blue-50 border-blue-300" :
-                                               site.includes("target") ? "bg-red-100 border-red-300" :
-                                               "bg-gray-100 border-gray-300";
                                 return (
                                   <a
                                     key={i}
                                     href={r.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className={`px-3 py-2 rounded-lg border-2 ${bgColor} hover:opacity-80 transition-opacity`}
+                                    className="bg-white/5 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all"
                                   >
-                                    <span className="text-xs font-medium text-slate-600">{siteName}</span>
-                                    <span className="text-[10px] text-slate-400 block">Click to check price</span>
+                                    <div className="text-xs font-medium text-white/80">{siteName}</div>
+                                    <div className="text-[10px] text-slate-400">Check price →</div>
                                   </a>
                                 );
                               })
                             )}
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-              {priceComparison?.topPick && (
-                <div className="mt-4 pt-4 border-t border-gray-200 text-sm text-slate-600 bg-yellow-50 px-4 py-3 rounded-lg">
-                  🏆 <span className="font-bold">Best Deal:</span> {priceComparison.topPick.reason}
-                </div>
-              )}
-              <div className="mt-3 text-[10px] text-slate-400 text-center">
-                Prices from web search. Click retailer links to verify current prices.
+                      );
+                    })}
+                  </div>
+                )}
+
+                {priceComparison?.topPick && (
+                  <div className="mt-4 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 backdrop-blur-sm rounded-xl px-4 py-3 border border-yellow-500/30">
+                    <span className="text-yellow-400 font-bold">🏆 Best Deal:</span>
+                    <span className="text-white/80 ml-2">{priceComparison.topPick.reason}</span>
+                  </div>
+                )}
               </div>
-            </div>
+            </motion.div>
           </div>
         </section>
       )}
