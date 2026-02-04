@@ -10,18 +10,11 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [deals, setDeals] = useState<eBayItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    async function loadDeals() {
-      setLoading(true);
-      const data = await fetcheBayDeals();
-      setDeals(data);
-      setLoading(false);
-    }
-    loadDeals();
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
@@ -32,9 +25,33 @@ export default function Home() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const filteredDeals = query 
-    ? deals.filter(d => d.title.toLowerCase().includes(query.toLowerCase()))
-    : deals;
+  useEffect(() => {
+    let isActive = true;
+    const timeout = setTimeout(async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await fetcheBayDeals(query.trim());
+        if (isActive) {
+          setDeals(data);
+        }
+      } catch (err) {
+        if (isActive) {
+          setDeals([]);
+          setError(err instanceof Error ? err.message : "Unable to load deals.");
+        }
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    }, 350);
+
+    return () => {
+      isActive = false;
+      clearTimeout(timeout);
+    };
+  }, [query]);
 
   return (
     <main className="min-h-screen bg-[#FBFBFB] selection:bg-black selection:text-white">
@@ -181,8 +198,8 @@ export default function Home() {
               [...Array(4)].map((_, i) => (
                 <div key={i} className="h-96 rounded-3xl bg-black/[0.02] animate-pulse" />
               ))
-            ) : filteredDeals.length > 0 ? (
-              filteredDeals.map((deal) => (
+            ) : deals.length > 0 ? (
+              deals.map((deal) => (
                 <motion.div 
                   key={deal.id}
                   whileHover={{ y: -5 }}
@@ -220,7 +237,9 @@ export default function Home() {
                 </motion.div>
               ))
             ) : (
-              <div className="col-span-full py-20 text-center text-black/40 font-medium">No deals found for "{query}"</div>
+              <div className="col-span-full py-20 text-center text-black/40 font-medium">
+                {error ? error : query ? `No deals found for \"${query}\"` : "No deals found."}
+              </div>
             )}
           </div>
         </div>
