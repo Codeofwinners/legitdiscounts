@@ -216,68 +216,38 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Price Comparison */}
+      {/* Price Comparison - Notion style */}
       {(comparingPrices || priceComparison) && query.trim() && (
-        <section className="px-4 pb-6 max-w-4xl mx-auto">
+        <section className="px-4 pb-6 max-w-3xl mx-auto">
           {comparingPrices && (
-            <div className="flex items-center gap-2 text-sm text-slate-500 mb-3">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Finding best prices...
-            </div>
+            <div className="text-[13px] text-slate-400 mb-2">Finding prices...</div>
           )}
-          {priceComparison?.analysis && priceComparison.analysis.map((item) => {
-            const seenUrls = new Set<string>();
-            return (
-              <div key={item.index} className="mb-4">
-                <div className="text-sm font-medium text-slate-800 mb-2">{item.productName}</div>
-                <div className="flex items-center gap-4 mb-2">
-                  <div>
-                    <div className="text-xs text-slate-400">Refurbished</div>
-                    <div className="text-xl font-bold text-emerald-600">${item.refurbPrice}</div>
-                  </div>
-                  {item.savingsPercent && (
-                    <div className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded">
-                      Save {Math.round(item.savingsPercent)}%
-                    </div>
-                  )}
-                </div>
-                <div className="text-xs text-slate-400 mb-1">Compare new prices:</div>
-                <div className="flex flex-wrap gap-3">
-                  {/* Show extracted prices first */}
-                  {item.retailerPrices?.map((rp, i) => {
-                    seenUrls.add(rp.url);
-                    return (
-                      <a
-                        key={`rp-${i}`}
-                        href={rp.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-slate-700 hover:text-emerald-600 underline underline-offset-2 font-medium"
-                      >
-                        {rp.retailer} ${rp.price}
-                      </a>
-                    );
-                  })}
-                  {/* Show additional retailer links */}
-                  {item.webResults?.filter(r => !seenUrls.has(r.url)).slice(0, 5).map((r, i) => {
-                    const site = (r.site || "").replace("www.", "").split(".")[0];
-                    const siteName = site.charAt(0).toUpperCase() + site.slice(1);
-                    return (
-                      <a
-                        key={`wr-${i}`}
-                        href={r.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-slate-500 hover:text-emerald-600 underline underline-offset-2"
-                      >
-                        {siteName}
-                      </a>
-                    );
-                  })}
-                </div>
+          {priceComparison?.analysis && priceComparison.analysis.map((item) => (
+            <div key={item.index} className="mb-6">
+              <div className="flex items-baseline gap-3 mb-3">
+                <span className="text-[15px] font-semibold text-slate-800">{item.productName}</span>
+                <span className="text-[15px] font-bold text-emerald-600">${item.refurbPrice}</span>
+                {item.savingsPercent && (
+                  <span className="text-[13px] text-emerald-600">({Math.round(item.savingsPercent)}% less)</span>
+                )}
               </div>
-            );
-          })}
+              <div className="space-y-1">
+                {item.retailerPrices?.map((rp, i) => (
+                  <a
+                    key={i}
+                    href={rp.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 py-1.5 px-2 -mx-2 rounded hover:bg-slate-50 transition-colors group"
+                  >
+                    <span className="w-20 text-[13px] text-slate-500">{rp.retailer}</span>
+                    <span className="text-[13px] font-medium text-slate-700">${rp.price}</span>
+                    <span className="text-[11px] text-slate-300 group-hover:text-slate-400 ml-auto">↗</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))}
         </section>
       )}
 
