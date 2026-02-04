@@ -58,12 +58,16 @@ export default function Home() {
       {/* Navigation */}
       <nav className="fixed top-0 w-full h-16 border-b border-black/[0.04] bg-white/70 backdrop-blur-xl z-50">
         <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
-          <div className="flex items-center gap-2 group cursor-pointer">
+          <a
+            href="/"
+            onClick={(e) => { e.preventDefault(); setQuery(""); window.scrollTo(0, 0); }}
+            className="flex items-center gap-2 group cursor-pointer"
+          >
             <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center group-hover:rotate-6 transition-transform">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
             <span className="text-xl font-bold tracking-tight">EpicDeals</span>
-          </div>
+          </a>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-black/50">
             <a href="#" className="hover:text-black transition-colors">iPhone</a>
             <a href="#" className="hover:text-black transition-colors">Mac</a>
