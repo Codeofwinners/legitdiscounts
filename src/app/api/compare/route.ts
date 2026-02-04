@@ -56,8 +56,8 @@ function cleanForSearch(title: string) {
 
 async function searchBrave(query: string, apiKey: string) {
   const url = new URL("https://api.search.brave.com/res/v1/web/search");
-  url.searchParams.set("q", `${query} buy new price`);
-  url.searchParams.set("count", "15");
+  url.searchParams.set("q", `${query} price site:amazon.com OR site:bestbuy.com OR site:walmart.com OR site:target.com OR site:newegg.com`);
+  url.searchParams.set("count", "20");
   url.searchParams.set("search_lang", "en");
   url.searchParams.set("country", "us");
   url.searchParams.set("result_filter", "web");
@@ -237,7 +237,7 @@ Return ONLY valid JSON:
   }
 }
 
-IMPORTANT: Return AT LEAST 5 retailer prices per product! Search harder if needed. Include Amazon, Best Buy, Walmart, Target, Newegg, B&H, Adorama, etc.
+CRITICAL: You MUST return a price for EVERY retailer in the search results! Look for prices like "$99.99", "99.99", "$99" in titles AND descriptions. If a retailer appears in results, extract or estimate their price. Return AT LEAST 5 retailer prices. If you can't find exact price, use the typical retail price for that product.
 
 VERDICT RULES:
 - Great deal = 20%+ savings
