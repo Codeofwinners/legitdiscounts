@@ -267,7 +267,16 @@ export async function GET(request: Request) {
 
     const data = await response.json();
 
-    const items = (data.itemSummaries || []).map((item: any) => {
+    // Filter results to only include items where search terms appear in sequence
+    const searchTerms = q.toLowerCase().trim();
+    const filteredSummaries = searchTerms
+      ? (data.itemSummaries || []).filter((item: any) => {
+          const title = (item.title || "").toLowerCase();
+          return title.includes(searchTerms);
+        })
+      : data.itemSummaries || [];
+
+    const items = filteredSummaries.map((item: any) => {
       const priceValue = Number(item.price?.value || 0);
       const originalValue = Number(item.marketingPrice?.originalPrice?.value || 0);
       const savings = originalValue && priceValue ? Math.max(originalValue - priceValue, 0) : undefined;
@@ -289,7 +298,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       items,
-      total: data.total || 0,
+      total: items.length,
       popularBrands: POPULAR_BRANDS,
       marketplace,
       supportsRefurbished,
