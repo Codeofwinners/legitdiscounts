@@ -198,8 +198,7 @@ export default function Home() {
                 </motion.div>
               )}
             </AnimatePresence>
-          </motion.div>
-
+          </div>
         </div>
       </section>
 
