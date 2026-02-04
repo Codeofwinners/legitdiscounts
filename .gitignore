@@ -1,0 +1,8 @@
+# master
+node_modules
+.next
+out
+build
+.DS_Store
+.env*
+*.log
