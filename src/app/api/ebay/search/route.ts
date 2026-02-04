@@ -216,8 +216,8 @@ export async function GET(request: Request) {
   if (deals) {
     params.set("category_ids", categoryId || "293");
     params.set("sort", "newlyListed");
-  } else {
-    params.set("q", q || "refurbished iphone");
+  } else if (q) {
+    params.set("q", q);
   }
 
   if (sortOrder && !deals) {
@@ -256,7 +256,24 @@ export async function GET(request: Request) {
 
     const data = await response.json();
 
-    const items = (data.itemSummaries || []).map((item: any) => {
+    // Filter results: keywords must appear in sequence in title
+    const queryWords = q.toLowerCase().trim().split(/\s+/).filter(Boolean);
+
+    const filteredSummaries = (data.itemSummaries || []).filter((item: any) => {
+      if (!q || queryWords.length === 0) return true;
+      const title = (item.title || "").toLowerCase();
+
+      // Check if all query words appear in sequence
+      let lastIndex = -1;
+      for (const word of queryWords) {
+        const idx = title.indexOf(word, lastIndex + 1);
+        if (idx === -1 || idx <= lastIndex) return false;
+        lastIndex = idx;
+      }
+      return true;
+    });
+
+    const items = filteredSummaries.map((item: any) => {
       const priceValue = Number(item.price?.value || 0);
       const originalValue = Number(item.marketingPrice?.originalPrice?.value || 0);
       const savings = originalValue && priceValue ? Math.max(originalValue - priceValue, 0) : undefined;
