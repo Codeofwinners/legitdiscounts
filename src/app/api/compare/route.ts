@@ -202,15 +202,15 @@ export async function POST(request: Request) {
 
   const searchDataText = allSearchData.join("\n\n");
 
-  const prompt = `I searched for new retail prices for these refurbished products. Analyze the ACTUAL search results and extract real prices.
+  const prompt = `I searched for new retail prices for these refurbished products. Analyze the ACTUAL search results and extract ALL prices from ALL retailers.
 
 ${searchDataText}
 
 INSTRUCTIONS:
-1. From the search results, find the NEW retail price (look for prices in titles/descriptions like "\\$79", "79.99", etc.)
-2. Identify which retailer has the best new price (Amazon, Best Buy, Walmart, etc.)
-3. Compare to the refurbished price shown
-4. Provide the actual URL where I can buy it new
+1. From the search results, find ALL new retail prices from EVERY retailer (Amazon, Best Buy, Walmart, Target, etc.)
+2. Extract the actual price number from titles/descriptions like "$79", "79.99", "$79.99"
+3. Return ALL retailer prices found, not just the best one
+4. Include the actual URL for each retailer
 
 Return ONLY valid JSON:
 {
@@ -218,22 +218,26 @@ Return ONLY valid JSON:
     {
       "index": 1,
       "productName": "Short clear name",
-      "newRetailPrice": 79,
-      "retailer": "Amazon",
-      "retailerUrl": "https://actual-url-from-search-results.com",
       "refurbPrice": 59,
+      "retailerPrices": [
+        {"retailer": "Amazon", "price": 79, "url": "https://amazon.com/..."},
+        {"retailer": "Best Buy", "price": 85, "url": "https://bestbuy.com/..."},
+        {"retailer": "Walmart", "price": 82, "url": "https://walmart.com/..."}
+      ],
+      "lowestNewPrice": 79,
+      "lowestRetailer": "Amazon",
       "savings": 20,
       "savingsPercent": 25,
-      "verdict": "Great deal",
-      "priceNote": "Found at $79 on Amazon, $85 at Best Buy"
+      "verdict": "Great deal"
     }
   ],
   "topPick": {
     "index": 1,
     "reason": "Best savings at 25% off vs new"
-  },
-  "summary": "Brief analysis"
+  }
 }
+
+IMPORTANT: Include ALL retailers with prices found in search results, not just one!
 
 VERDICT RULES:
 - Great deal = 20%+ savings

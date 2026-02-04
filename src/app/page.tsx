@@ -6,17 +6,22 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { fetcheBayDeals, eBayItem } from "@/lib/ebay";
 
+type RetailerPrice = {
+  retailer: string;
+  price: number;
+  url: string;
+};
+
 type PriceAnalysis = {
   index: number;
   productName: string;
-  newRetailPrice?: number;
-  retailer?: string;
-  retailerUrl?: string;
   refurbPrice: number | string;
+  retailerPrices?: RetailerPrice[];
+  lowestNewPrice?: number;
+  lowestRetailer?: string;
   savings?: number;
   savingsPercent?: number;
   verdict: string;
-  priceNote?: string;
   webResults?: { title: string; url: string; site: string }[];
 };
 
@@ -265,61 +270,73 @@ export default function Home() {
                           <span className="text-lg">{emoji}</span>
                           <span className="flex-1 font-semibold text-slate-800">{item.productName}</span>
                         </div>
-                        <div className="flex items-center gap-3 ml-7">
-                          <div className="bg-emerald-50 px-3 py-1.5 rounded-lg">
+                        <div className="flex items-center gap-3 ml-7 flex-wrap">
+                          <div className="bg-emerald-50 px-3 py-1.5 rounded-lg border-2 border-emerald-200">
                             <span className="text-[10px] text-emerald-600 font-medium block">REFURBISHED</span>
-                            <span className="text-emerald-700 font-bold text-lg">${item.refurbPrice}</span>
+                            <span className="text-emerald-700 font-bold text-xl">${item.refurbPrice}</span>
                           </div>
-                          <span className="text-slate-300 font-bold">vs</span>
-                          <div className="bg-slate-50 px-3 py-1.5 rounded-lg">
-                            <span className="text-[10px] text-slate-500 font-medium block">NEW RETAIL</span>
-                            <span className="text-slate-700 font-bold text-lg">${item.newRetailPrice || "?"}</span>
-                          </div>
+                          <span className="text-slate-300 font-bold text-xl">vs</span>
                           {item.savingsPercent && (
                             <div className="bg-orange-50 px-3 py-1.5 rounded-lg">
                               <span className="text-[10px] text-orange-600 font-medium block">YOU SAVE</span>
-                              <span className="text-orange-600 font-bold text-lg">{item.savingsPercent}%</span>
+                              <span className="text-orange-600 font-bold text-xl">{item.savingsPercent}%</span>
                             </div>
                           )}
                         </div>
-                        {item.priceNote && (
-                          <div className="ml-7 text-sm text-slate-600 bg-blue-50 px-3 py-2 rounded-lg">
-                            📊 {item.priceNote}
+                        {/* All Retailer Prices */}
+                        <div className="ml-7 mt-2">
+                          <span className="text-xs text-slate-500 font-medium block mb-2">New prices from retailers:</span>
+                          <div className="flex flex-wrap gap-2">
+                            {item.retailerPrices && item.retailerPrices.length > 0 ? (
+                              item.retailerPrices.map((rp, i) => {
+                                const retailerLower = (rp.retailer || "").toLowerCase();
+                                const isLowest = rp.price === item.lowestNewPrice;
+                                const bgColor = retailerLower.includes("amazon") ? "bg-orange-100 border-orange-300" :
+                                               retailerLower.includes("best buy") || retailerLower.includes("bestbuy") ? "bg-blue-100 border-blue-300" :
+                                               retailerLower.includes("walmart") ? "bg-blue-50 border-blue-300" :
+                                               retailerLower.includes("target") ? "bg-red-100 border-red-300" :
+                                               retailerLower.includes("newegg") ? "bg-orange-50 border-orange-300" :
+                                               "bg-gray-100 border-gray-300";
+                                return (
+                                  <a
+                                    key={i}
+                                    href={rp.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={`px-3 py-2 rounded-lg border-2 ${bgColor} ${isLowest ? "ring-2 ring-emerald-400" : ""} hover:opacity-80 transition-opacity`}
+                                  >
+                                    <span className="text-[10px] text-slate-500 font-medium block">{rp.retailer}</span>
+                                    <span className={`font-bold text-lg ${isLowest ? "text-emerald-600" : "text-slate-700"}`}>
+                                      ${rp.price}
+                                      {isLowest && <span className="text-[10px] ml-1">✓ LOWEST</span>}
+                                    </span>
+                                  </a>
+                                );
+                              })
+                            ) : (
+                              item.webResults?.slice(0, 5).map((r, i) => {
+                                const site = (r.site || "").replace("www.", "").split(".")[0];
+                                const siteName = site.charAt(0).toUpperCase() + site.slice(1);
+                                const bgColor = site.includes("amazon") ? "bg-orange-100 border-orange-300" :
+                                               site.includes("bestbuy") ? "bg-blue-100 border-blue-300" :
+                                               site.includes("walmart") ? "bg-blue-50 border-blue-300" :
+                                               site.includes("target") ? "bg-red-100 border-red-300" :
+                                               "bg-gray-100 border-gray-300";
+                                return (
+                                  <a
+                                    key={i}
+                                    href={r.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={`px-3 py-2 rounded-lg border-2 ${bgColor} hover:opacity-80 transition-opacity`}
+                                  >
+                                    <span className="text-xs font-medium text-slate-600">{siteName}</span>
+                                    <span className="text-[10px] text-slate-400 block">Click to check price</span>
+                                  </a>
+                                );
+                              })
+                            )}
                           </div>
-                        )}
-                        <div className="flex items-center gap-2 ml-7 flex-wrap">
-                          <span className="text-xs text-slate-400 font-medium">Compare prices:</span>
-                          {item.retailerUrl && (
-                            <a
-                              href={item.retailerUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs px-3 py-1.5 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 font-bold"
-                            >
-                              {item.retailer || "Best Price"} →
-                            </a>
-                          )}
-                          {item.webResults?.map((r, i) => {
-                            if (r.url === item.retailerUrl) return null;
-                            const site = (r.site || "").replace("www.", "").split(".")[0];
-                            const siteName = site.charAt(0).toUpperCase() + site.slice(1);
-                            const bgColor = site.includes("amazon") ? "bg-orange-100 text-orange-700 hover:bg-orange-200" :
-                                           site.includes("bestbuy") ? "bg-blue-100 text-blue-700 hover:bg-blue-200" :
-                                           site.includes("walmart") ? "bg-blue-100 text-blue-800 hover:bg-blue-200" :
-                                           site.includes("target") ? "bg-red-100 text-red-700 hover:bg-red-200" :
-                                           "bg-gray-100 text-gray-700 hover:bg-gray-200";
-                            return (
-                              <a
-                                key={i}
-                                href={r.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={`text-xs px-3 py-1.5 rounded-lg font-medium ${bgColor}`}
-                              >
-                                {siteName}
-                              </a>
-                            );
-                          })}
                         </div>
                       </div>
                     );
