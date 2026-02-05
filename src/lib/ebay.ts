@@ -10,11 +10,10 @@ export interface eBayItem {
 }
 
 export async function fetcheBayDeals(query: string = ""): Promise<eBayItem[]> {
-  // Homepage: use deals scraper for Daily Deals
-  // Search: use search API with keyword filtering
+  // Always use Browse API - search with query or trending without
   const endpoint = query.trim()
-    ? `/api/ebay/search?q=${encodeURIComponent(query.trim())}&limit=200`
-    : "/api/ebay/deals";
+    ? `/api/ebay/search?q=${encodeURIComponent(query.trim())}&limit=50`
+    : `/api/ebay/search?deals=true&limit=50`;
 
   const response = await fetch(endpoint, {
     method: "GET",
