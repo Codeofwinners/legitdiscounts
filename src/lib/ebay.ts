@@ -39,10 +39,10 @@ function mapDealApiItem(item: DealApiItem): eBayItem {
 
 export async function fetcheBayDeals(query: string = ""): Promise<eBayItem[]> {
   // Use absolute URLs for production to ensure they hit the PHP backend
-  const baseUrl = "https://refurbished.deals";
+  const baseUrl = 'https://www.legit.discount';
   const endpoint = query.trim()
-    ? `${baseUrl}/api/search.php?q=${encodeURIComponent(query.trim())}&limit=50`
-    : `${baseUrl}/api/deals.php?limit=200`;
+    ? `${baseUrl}/api/ebay/search?q=${encodeURIComponent(query.trim())}&limit=50`
+    : `${baseUrl}/api/ebay/search?deals=true?limit=200`;
 
   const response = await fetch(endpoint, {
     method: "GET",
