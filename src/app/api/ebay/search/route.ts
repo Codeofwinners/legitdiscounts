@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { scrapeEbayDeals } from "@/lib/ebayDealsScraper";
+
 const AFFILIATE_CAMPID = "5339117469";
 const AFFILIATE_MKRID = "711-53200-19255-0";
 
@@ -170,6 +172,28 @@ async function fetchWithToken(url: string, marketplace: string) {
   });
 }
 
+function mapSummaryToItem(item: any, options?: { addAffiliate?: boolean }) {
+  const addAffiliate = options?.addAffiliate !== false;
+  const priceValue = Number(item.price?.value || 0);
+  const originalValue = Number(item.marketingPrice?.originalPrice?.value || 0);
+  const savings = originalValue && priceValue ? Math.max(originalValue - priceValue, 0) : undefined;
+  const rawItemUrl = item.itemWebUrl || item.itemAffiliateWebUrl || "";
+
+  return {
+    id: item.itemId || item.legacyItemId || crypto.randomUUID(),
+    title: item.title || "",
+    price: priceValue,
+    originalPrice: originalValue || undefined,
+    imageUrl:
+      item.image?.imageUrl ||
+      item.thumbnailImages?.[0]?.imageUrl ||
+      "https://picsum.photos/400/400",
+    itemUrl: addAffiliate ? addAffiliateParams(rawItemUrl) : rawItemUrl,
+    condition: item.condition || "",
+    savings: savings && savings > 0 ? savings : undefined,
+  };
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
@@ -213,6 +237,40 @@ export async function GET(request: Request) {
 
   const supportsRefurbished = getSupportsRefurbishedProgram(marketplace);
   const currency = MARKETPLACE_CURRENCY[marketplace] || "USD";
+
+  if (deals) {
+    try {
+      const dealsData = await scrapeEbayDeals({ limit, offset });
+      const filteredSummaries = applyTitleAndConditionFilters(dealsData.itemSummaries);
+      const items = filteredSummaries.map((item) => mapSummaryToItem(item, { addAffiliate: false }));
+
+      return NextResponse.json({
+        items,
+        total: items.length,
+        popularBrands: POPULAR_BRANDS,
+        marketplace,
+        supportsRefurbished,
+        appliedFilters: {
+          conditions,
+          brands: brands ? brands.split(",") : [],
+          categoryId: categoryId || "9355",
+          freeShipping,
+          buyingOptions,
+          priceRange: { min, max },
+        },
+        isDeals: true,
+        source: dealsData.source,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      return NextResponse.json(
+        {
+          error: message,
+        },
+        { status: 500 },
+      );
+    }
+  }
 
   const filters = buildFilters({
     conditions,
@@ -308,25 +366,7 @@ export async function GET(request: Request) {
       }
     }
 
-    const items = filteredSummaries.map((item: any) => {
-      const priceValue = Number(item.price?.value || 0);
-      const originalValue = Number(item.marketingPrice?.originalPrice?.value || 0);
-      const savings = originalValue && priceValue ? Math.max(originalValue - priceValue, 0) : undefined;
-
-      return {
-        id: item.itemId || item.legacyItemId || crypto.randomUUID(),
-        title: item.title || "",
-        price: priceValue,
-        originalPrice: originalValue || undefined,
-        imageUrl:
-          item.image?.imageUrl ||
-          item.thumbnailImages?.[0]?.imageUrl ||
-          "https://picsum.photos/400/400",
-        itemUrl: addAffiliateParams(item.itemWebUrl || item.itemAffiliateWebUrl || ""),
-        condition: item.condition || "",
-        savings: savings && savings > 0 ? savings : undefined,
-      };
-    });
+    const items = filteredSummaries.map((item: any) => mapSummaryToItem(item));
 
     return NextResponse.json({
       items,

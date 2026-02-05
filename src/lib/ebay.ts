@@ -38,10 +38,10 @@ function mapDealApiItem(item: DealApiItem): eBayItem {
 }
 
 export async function fetcheBayDeals(query: string = ""): Promise<eBayItem[]> {
-  // Use scraped deals for homepage; Browse API for searches
+  // Use the search API for all requests; deals flag pulls from the scraper on the backend
   const endpoint = query.trim()
     ? `/api/ebay/search?q=${encodeURIComponent(query.trim())}&limit=50`
-    : `/api/ebay/deals?limit=200`;
+    : `/api/ebay/search?deals=true&limit=200`;
 
   const response = await fetch(endpoint, {
     method: "GET",
@@ -52,9 +52,5 @@ export async function fetcheBayDeals(query: string = ""): Promise<eBayItem[]> {
   }
 
   const data = await response.json();
-  if (query.trim()) {
-    return data.items || [];
-  }
-
-  return (data.itemSummaries || []).map(mapDealApiItem);
+  return data.items || (data.itemSummaries || []).map(mapDealApiItem);
 }
